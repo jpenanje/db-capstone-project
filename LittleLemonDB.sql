@@ -25,15 +25,11 @@ DROP TABLE IF EXISTS `bookings`;
 CREATE TABLE `bookings` (
   `BookingID` int NOT NULL,
   `TableNumber` int NOT NULL,
-  `BookingDate` date NOT NULL,
-  `BookingTime` time NOT NULL,
-  `CustomerID` int NOT NULL,
-  `StaffID` int NOT NULL,
-  PRIMARY KEY (`BookingID`,`TableNumber`),
-  KEY `fk_Bookings_Customer1_idx` (`CustomerID`),
-  KEY `fk_Bookings_Staff1_idx` (`StaffID`),
-  CONSTRAINT `fk_Bookings_Customer1` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`),
-  CONSTRAINT `fk_Bookings_Staff1` FOREIGN KEY (`StaffID`) REFERENCES `staff` (`StaffID`)
+  `BookingSlot` time NOT NULL,
+  `Staff_StaffID` int NOT NULL,
+  PRIMARY KEY (`BookingID`),
+  KEY `fk_Bookings_Staff1_idx` (`Staff_StaffID`),
+  CONSTRAINT `fk_Bookings_Staff1` FOREIGN KEY (`Staff_StaffID`) REFERENCES `staff` (`StaffID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -55,11 +51,14 @@ DROP TABLE IF EXISTS `customer`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customer` (
   `CustomerID` int NOT NULL,
-  `CustomerName` varchar(45) NOT NULL,
+  `CustomerFirstName` varchar(45) NOT NULL,
+  `CustomerLastName` varchar(45) NOT NULL,
   `PhoneNumber` int NOT NULL,
   `Email` varchar(45) NOT NULL,
   `Address` varchar(45) NOT NULL,
-  PRIMARY KEY (`CustomerID`)
+  PRIMARY KEY (`CustomerID`),
+  UNIQUE KEY `PhoneNumber_UNIQUE` (`PhoneNumber`),
+  UNIQUE KEY `Email_UNIQUE` (`Email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -81,12 +80,9 @@ DROP TABLE IF EXISTS `menu`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `menu` (
   `MenuID` int NOT NULL,
-  `Cuisine` varchar(45) NOT NULL,
-  `Starter` varchar(45) NOT NULL,
-  `Courses` varchar(45) NOT NULL,
-  `Drinks` varchar(45) NOT NULL,
-  `Dessert` varchar(45) NOT NULL,
-  PRIMARY KEY (`MenuID`)
+  `ItemID` int NOT NULL,
+  `Cuisine` varchar(100) NOT NULL,
+  PRIMARY KEY (`MenuID`,`ItemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -100,6 +96,59 @@ LOCK TABLES `menu` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `menu_has_menuitems`
+--
+
+DROP TABLE IF EXISTS `menu_has_menuitems`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `menu_has_menuitems` (
+  `Menu_MenuID` int NOT NULL,
+  `Menu_ItemID` int NOT NULL,
+  `MenuItems_ItemID` int NOT NULL,
+  PRIMARY KEY (`Menu_MenuID`,`Menu_ItemID`,`MenuItems_ItemID`),
+  KEY `fk_Menu_has_MenuItems_MenuItems1_idx` (`MenuItems_ItemID`),
+  KEY `fk_Menu_has_MenuItems_Menu1_idx` (`Menu_MenuID`,`Menu_ItemID`),
+  CONSTRAINT `fk_Menu_has_MenuItems_Menu1` FOREIGN KEY (`Menu_MenuID`, `Menu_ItemID`) REFERENCES `menu` (`MenuID`, `ItemID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Menu_has_MenuItems_MenuItems1` FOREIGN KEY (`MenuItems_ItemID`) REFERENCES `menuitems` (`ItemID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `menu_has_menuitems`
+--
+
+LOCK TABLES `menu_has_menuitems` WRITE;
+/*!40000 ALTER TABLE `menu_has_menuitems` DISABLE KEYS */;
+/*!40000 ALTER TABLE `menu_has_menuitems` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `menuitems`
+--
+
+DROP TABLE IF EXISTS `menuitems`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `menuitems` (
+  `ItemID` int NOT NULL,
+  `Name` varchar(200) NOT NULL,
+  `Type` varchar(100) NOT NULL,
+  `Price` decimal(10,0) NOT NULL,
+  PRIMARY KEY (`ItemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `menuitems`
+--
+
+LOCK TABLES `menuitems` WRITE;
+/*!40000 ALTER TABLE `menuitems` DISABLE KEYS */;
+/*!40000 ALTER TABLE `menuitems` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `orderdeliverystatus`
 --
 
@@ -110,10 +159,10 @@ CREATE TABLE `orderdeliverystatus` (
   `OrderDeliveryStatusID` int NOT NULL,
   `DeliveryDate` date NOT NULL,
   `Status` varchar(45) NOT NULL,
-  `OrderID` int NOT NULL,
-  PRIMARY KEY (`OrderDeliveryStatusID`,`OrderID`),
-  KEY `fk_OrderDeliveryStatus_Orders1_idx` (`OrderID`),
-  CONSTRAINT `order_id_fk` FOREIGN KEY (`OrderID`) REFERENCES `orders` (`OrderID`) ON DELETE CASCADE ON UPDATE CASCADE
+  `Orders_OrderID` int NOT NULL,
+  PRIMARY KEY (`OrderDeliveryStatusID`),
+  KEY `fk_OrderDeliveryStatus_Orders1_idx` (`Orders_OrderID`),
+  CONSTRAINT `fk_OrderDeliveryStatus_Orders1` FOREIGN KEY (`Orders_OrderID`) REFERENCES `orders` (`OrderID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -135,17 +184,20 @@ DROP TABLE IF EXISTS `orders`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orders` (
   `OrderID` int NOT NULL,
-  `OrderDate` date NOT NULL,
+  `TableNo` int NOT NULL,
   `Quantity` int NOT NULL,
   `TotalCost` decimal(10,0) NOT NULL,
-  `Status` varchar(45) NOT NULL,
-  `CustomerID` int NOT NULL,
-  `StaffID` int NOT NULL,
+  `Menu_MenuID` int NOT NULL,
+  `Menu_ItemID` int NOT NULL,
+  `Customer_CustomerID` int NOT NULL,
+  `Bookings_BookingID` int NOT NULL,
   PRIMARY KEY (`OrderID`),
-  KEY `custumer_id_fk_idx` (`CustomerID`),
-  KEY `staff_id_fk_idx` (`StaffID`),
-  CONSTRAINT `customer_id_fk` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `staff_id_fk` FOREIGN KEY (`StaffID`) REFERENCES `staff` (`StaffID`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `fk_Orders_Menu1_idx` (`Menu_MenuID`,`Menu_ItemID`),
+  KEY `fk_Orders_Customer1_idx` (`Customer_CustomerID`),
+  KEY `fk_Orders_Bookings1_idx` (`Bookings_BookingID`),
+  CONSTRAINT `fk_Orders_Bookings1` FOREIGN KEY (`Bookings_BookingID`) REFERENCES `bookings` (`BookingID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Orders_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_Orders_Menu1` FOREIGN KEY (`Menu_MenuID`, `Menu_ItemID`) REFERENCES `menu` (`MenuID`, `ItemID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -159,33 +211,6 @@ LOCK TABLES `orders` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `orders_has_menu`
---
-
-DROP TABLE IF EXISTS `orders_has_menu`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `orders_has_menu` (
-  `Orders_OrderID` int NOT NULL,
-  `Menu_MenuID` int NOT NULL,
-  PRIMARY KEY (`Orders_OrderID`,`Menu_MenuID`),
-  KEY `fk_Orders_has_Menu_Menu1_idx` (`Menu_MenuID`),
-  KEY `fk_Orders_has_Menu_Orders1_idx` (`Orders_OrderID`),
-  CONSTRAINT `fk_Orders_has_Menu_Menu1` FOREIGN KEY (`Menu_MenuID`) REFERENCES `menu` (`MenuID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_Orders_has_Menu_Orders1` FOREIGN KEY (`Orders_OrderID`) REFERENCES `orders` (`OrderID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `orders_has_menu`
---
-
-LOCK TABLES `orders_has_menu` WRITE;
-/*!40000 ALTER TABLE `orders_has_menu` DISABLE KEYS */;
-/*!40000 ALTER TABLE `orders_has_menu` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `staff`
 --
 
@@ -196,8 +221,13 @@ CREATE TABLE `staff` (
   `StaffID` int NOT NULL,
   `StaffName` varchar(45) NOT NULL,
   `Role` varchar(45) NOT NULL,
-  `Salary` decimal(10,0) NOT NULL,
-  PRIMARY KEY (`StaffID`)
+  `Address` varchar(100) NOT NULL,
+  `PhoneNumber` int NOT NULL,
+  `Email` varchar(45) NOT NULL,
+  `Salary` varchar(45) NOT NULL,
+  PRIMARY KEY (`StaffID`),
+  UNIQUE KEY `Email_UNIQUE` (`Email`),
+  UNIQUE KEY `PhoneNumber_UNIQUE` (`PhoneNumber`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -219,4 +249,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-01-02  3:21:57
+-- Dump completed on 2024-01-02 12:48:13

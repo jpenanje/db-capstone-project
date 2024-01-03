@@ -25,11 +25,11 @@ DROP TABLE IF EXISTS `bookings`;
 CREATE TABLE `bookings` (
   `BookingID` int NOT NULL,
   `TableNumber` int NOT NULL,
-  `BookingSlot` time NOT NULL,
-  `Staff_StaffID` int NOT NULL,
+  `BookingDate` date NOT NULL,
+  `Customer_CustomerID` int NOT NULL,
   PRIMARY KEY (`BookingID`),
-  KEY `fk_Bookings_Staff1_idx` (`Staff_StaffID`),
-  CONSTRAINT `fk_Bookings_Staff1` FOREIGN KEY (`Staff_StaffID`) REFERENCES `staff` (`StaffID`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `fk_Bookings_Customer1_idx` (`Customer_CustomerID`),
+  CONSTRAINT `fk_Bookings_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `customer` (`CustomerID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -51,11 +51,9 @@ DROP TABLE IF EXISTS `customer`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customer` (
   `CustomerID` int NOT NULL,
-  `CustomerFirstName` varchar(45) NOT NULL,
-  `CustomerLastName` varchar(45) NOT NULL,
+  `FullName` varchar(45) NOT NULL,
   `PhoneNumber` int NOT NULL,
   `Email` varchar(45) NOT NULL,
-  `Address` varchar(45) NOT NULL,
   PRIMARY KEY (`CustomerID`),
   UNIQUE KEY `PhoneNumber_UNIQUE` (`PhoneNumber`),
   UNIQUE KEY `Email_UNIQUE` (`Email`)
@@ -68,6 +66,7 @@ CREATE TABLE `customer` (
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
+INSERT INTO `customer` VALUES (1,'Anna Iversen',675876798,'ai@mail.com'),(2,'Joachim Iverson',698754325,'ji@mail.com'),(3,'Vannessa McCarthy',675439087,'vm@mail.com'),(4,'John Champion',665743546,'jc@mail.com');
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -109,7 +108,7 @@ CREATE TABLE `menuitems` (
   `ItemID` int NOT NULL,
   `CourseName` varchar(45) NOT NULL,
   `StarterName` varchar(45) NOT NULL,
-  `DesertName` decimal(45,0) NOT NULL,
+  `DesertName` varchar(45) NOT NULL,
   PRIMARY KEY (`ItemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -137,7 +136,7 @@ CREATE TABLE `orderdeliverystatus` (
   `Orders_OrderID` int NOT NULL,
   PRIMARY KEY (`OrderDeliveryStatusID`),
   KEY `fk_OrderDeliveryStatus_Orders1_idx` (`Orders_OrderID`),
-  CONSTRAINT `fk_OrderDeliveryStatus_Orders1` FOREIGN KEY (`Orders_OrderID`) REFERENCES `orders` (`OrderID`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_OrderDeliveryStatus_Orders1` FOREIGN KEY (`Orders_OrderID`) REFERENCES `orders` (`OrderID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -159,19 +158,16 @@ DROP TABLE IF EXISTS `orders`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orders` (
   `OrderID` int NOT NULL,
-  `TableNo` int NOT NULL,
+  `OrderDate` date NOT NULL,
   `Quantity` int NOT NULL,
   `TotalCost` decimal(10,0) NOT NULL,
-  `Menu_MenuID` int NOT NULL,
   `Customer_CustomerID` int NOT NULL,
-  `Bookings_BookingID` int NOT NULL,
+  `Menu_MenuID` int NOT NULL,
   PRIMARY KEY (`OrderID`),
-  KEY `fk_Orders_Menu1_idx` (`Menu_MenuID`),
   KEY `fk_Orders_Customer1_idx` (`Customer_CustomerID`),
-  KEY `fk_Orders_Bookings1_idx` (`Bookings_BookingID`),
-  CONSTRAINT `fk_Orders_Bookings1` FOREIGN KEY (`Bookings_BookingID`) REFERENCES `bookings` (`BookingID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_Orders_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_Orders_Menu1` FOREIGN KEY (`Menu_MenuID`) REFERENCES `menu` (`MenuID`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `fk_Orders_Menu1_idx` (`Menu_MenuID`),
+  CONSTRAINT `fk_Orders_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `customer` (`CustomerID`),
+  CONSTRAINT `fk_Orders_Menu1` FOREIGN KEY (`Menu_MenuID`) REFERENCES `menu` (`MenuID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -195,13 +191,8 @@ CREATE TABLE `staff` (
   `StaffID` int NOT NULL,
   `StaffName` varchar(45) NOT NULL,
   `Role` varchar(45) NOT NULL,
-  `Address` varchar(100) NOT NULL,
-  `PhoneNumber` int NOT NULL,
-  `Email` varchar(45) NOT NULL,
   `Salary` varchar(45) NOT NULL,
-  PRIMARY KEY (`StaffID`),
-  UNIQUE KEY `Email_UNIQUE` (`Email`),
-  UNIQUE KEY `PhoneNumber_UNIQUE` (`PhoneNumber`)
+  PRIMARY KEY (`StaffID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -223,4 +214,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-01-03  9:20:44
+-- Dump completed on 2024-01-03 10:20:04

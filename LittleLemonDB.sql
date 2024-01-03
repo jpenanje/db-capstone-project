@@ -80,9 +80,12 @@ DROP TABLE IF EXISTS `menu`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `menu` (
   `MenuID` int NOT NULL,
-  `ItemID` int NOT NULL,
+  `MenuName` varchar(45) NOT NULL,
   `Cuisine` varchar(100) NOT NULL,
-  PRIMARY KEY (`MenuID`,`ItemID`)
+  `ItemID` int NOT NULL,
+  PRIMARY KEY (`MenuID`),
+  KEY `fk_menuitems_idx` (`ItemID`),
+  CONSTRAINT `fk_menuitems` FOREIGN KEY (`ItemID`) REFERENCES `menuitems` (`ItemID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -96,34 +99,6 @@ LOCK TABLES `menu` WRITE;
 UNLOCK TABLES;
 
 --
--- Table structure for table `menu_has_menuitems`
---
-
-DROP TABLE IF EXISTS `menu_has_menuitems`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `menu_has_menuitems` (
-  `Menu_MenuID` int NOT NULL,
-  `Menu_ItemID` int NOT NULL,
-  `MenuItems_ItemID` int NOT NULL,
-  PRIMARY KEY (`Menu_MenuID`,`Menu_ItemID`,`MenuItems_ItemID`),
-  KEY `fk_Menu_has_MenuItems_MenuItems1_idx` (`MenuItems_ItemID`),
-  KEY `fk_Menu_has_MenuItems_Menu1_idx` (`Menu_MenuID`,`Menu_ItemID`),
-  CONSTRAINT `fk_Menu_has_MenuItems_Menu1` FOREIGN KEY (`Menu_MenuID`, `Menu_ItemID`) REFERENCES `menu` (`MenuID`, `ItemID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_Menu_has_MenuItems_MenuItems1` FOREIGN KEY (`MenuItems_ItemID`) REFERENCES `menuitems` (`ItemID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `menu_has_menuitems`
---
-
-LOCK TABLES `menu_has_menuitems` WRITE;
-/*!40000 ALTER TABLE `menu_has_menuitems` DISABLE KEYS */;
-/*!40000 ALTER TABLE `menu_has_menuitems` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `menuitems`
 --
 
@@ -132,9 +107,9 @@ DROP TABLE IF EXISTS `menuitems`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `menuitems` (
   `ItemID` int NOT NULL,
-  `Name` varchar(200) NOT NULL,
-  `Type` varchar(100) NOT NULL,
-  `Price` decimal(10,0) NOT NULL,
+  `CourseName` varchar(45) NOT NULL,
+  `StarterName` varchar(45) NOT NULL,
+  `DesertName` decimal(45,0) NOT NULL,
   PRIMARY KEY (`ItemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -188,16 +163,15 @@ CREATE TABLE `orders` (
   `Quantity` int NOT NULL,
   `TotalCost` decimal(10,0) NOT NULL,
   `Menu_MenuID` int NOT NULL,
-  `Menu_ItemID` int NOT NULL,
   `Customer_CustomerID` int NOT NULL,
   `Bookings_BookingID` int NOT NULL,
   PRIMARY KEY (`OrderID`),
-  KEY `fk_Orders_Menu1_idx` (`Menu_MenuID`,`Menu_ItemID`),
+  KEY `fk_Orders_Menu1_idx` (`Menu_MenuID`),
   KEY `fk_Orders_Customer1_idx` (`Customer_CustomerID`),
   KEY `fk_Orders_Bookings1_idx` (`Bookings_BookingID`),
   CONSTRAINT `fk_Orders_Bookings1` FOREIGN KEY (`Bookings_BookingID`) REFERENCES `bookings` (`BookingID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_Orders_Customer1` FOREIGN KEY (`Customer_CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_Orders_Menu1` FOREIGN KEY (`Menu_MenuID`, `Menu_ItemID`) REFERENCES `menu` (`MenuID`, `ItemID`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_Orders_Menu1` FOREIGN KEY (`Menu_MenuID`) REFERENCES `menu` (`MenuID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -249,4 +223,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-01-02 12:48:13
+-- Dump completed on 2024-01-03  9:20:44
